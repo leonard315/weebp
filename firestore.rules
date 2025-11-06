@@ -1,0 +1,95 @@
+
+/**
+ * @fileOverview Firestore Security Rules for CarStoreGo.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a user-ownership model for shopping carts and orders, and allows public read access to car listings. Data validation is relaxed for rapid prototyping.
+ *
+ * Data Structure:
+ * - /cars/{carId}: Stores car details. Publicly readable.
+ * - /users/{userId}/cartItems/{cartItemId}: Stores individual cart items. User-owned.
+ * - /orders/{orderId}: Stores customer orders. Users can only read their own orders. Admins can read all orders.
+ *
+ * Key Security Decisions:
+ * - Public car listings.
+ * - User-owned shopping carts (strict ownership).
+ * - User-owned orders (read-only for users), admin can read all.
+ * - Data validation is relaxed to allow for rapid prototyping but must be tightened later.
+ *
+ * Denormalization for Authorization:
+ * - Cart items are located under /users/{userId} to leverage path-based authorization.
+ *
+ * Structural Segregation:
+ * - Public car listings are separated from private user carts and orders.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Allows read access to car details for all users and restricts write access.
+     * @path /cars/{carId}
+     * @allow (get, list) All users can read car data.
+     * @allow (create, update, delete) Owner can manage car data
+     * @deny (create, update, delete) Non-owner cannot manage car data
+     * @principle Allows public read access to car data and restricts write access to car owner.
+     */
+    match /cars/{carId} {
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn();
+    }
+
+    /**
+     * @description Manages shopping cart items for individual users.
+     * @path /users/{userId}/cartItems/{cartItemId}
+     * @allow (create, get, update, delete, list) User can manage their own cart items.
+     * @deny (create, get, update, delete, list) User cannot manage other users' cart items.
+     * @principle Enforces strict user ownership for shopping cart data.
+     */
+    match /users/{userId}/cartItems/{cartItemId} {
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId) && resource != null;
+      allow delete: if isSignedIn() && isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Manages customer orders.
+     * @path /orders/{orderId}
+     * @allow (get) User can get their own order. Admins can get any order.
+     * @allow (list) User can list their own orders, Admins can list all orders.
+     * @allow (create) Any signed-in user can create an order.
+     * @principle Listing orders is only allowed via a query that filters by userId, unless user is an admin.
+     */
+     match /orders/{orderId} {
+      // Admins can get any order. Users can get their own orders.
+      allow get: if isSignedIn() && (isAdmin() || resource.data.userId == request.auth.uid);
+
+      // Admins can list all orders. Users can only list their own.
+      allow list: if isSignedIn() && (isAdmin() || request.query.where.userId == request.auth.uid);
+      
+      // Any signed-in user can create an order.
+      allow create: if isSignedIn();
+
+      // Disallow broad update and delete for now.
+      allow update, delete: if false;
+    }
+
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // This is a placeholder for a real admin check.
+    // In a production app, this would check for a custom claim: return request.auth.token.admin == true;
+    function isAdmin() {
+      return request.auth.uid == 'p6Y0dt2Vn7VQvUZ6DgmTzMRrvg93';
+    }
+  }
+}

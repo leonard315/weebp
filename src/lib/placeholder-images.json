@@ -1,0 +1,40 @@
+{
+  "placeholderImages": [
+    {
+      "id": "1",
+      "description": "Porsche 911 GT3",
+      "imageUrl": "https://images.unsplash.com/photo-1613921568536-555645be4032?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwb3JzY2hlJTIwOTExfGVufDB8fHx8MTc2MjQyODcxMnww&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "porsche 911"
+    },
+    {
+      "id": "2",
+      "description": "Ferrari F8 Tributo",
+      "imageUrl": "https://cdn.ferrari.com/cms/network/media/img/resize/63c5153bde3d8c00233f408c-ferrari-genuine-f8-tributo-social-card-page?width=1080",
+      "imageHint": "ferrari red"
+    },
+    {
+      "id": "3",
+      "description": "Lamborghini Huracan",
+      "imageUrl": "https://images.unsplash.com/photo-1696581082291-5230d4de01c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxsYW1ib3JnaGluaSUyMHllbGxvd3xlbnwwfHx8fDE3NjI0NDMyNjl8MA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "lamborghini yellow"
+    },
+    {
+      "id": "4",
+      "description": "McLaren 720S",
+      "imageUrl": "https://s1.paultan.org/image/2017/03/McLaren-720S-1.jpg",
+      "imageHint": "mclaren orange"
+    },
+    {
+      "id": "5",
+      "description": "Aston Martin Vantage",
+      "imageUrl": "https://s.yimg.com/ny/api/res/1.2/.ORvSdbC9wguST64zEGi.Q--/YXBwaWQ9aGlnaGxhbmRlcjt3PTEyMDA7aD04MDA-/https://media.zenfs.com/en/autocar_articles_778/bf231825b0f6fc72076d9382a1518dd8",
+      "imageHint": "aston martin green"
+    },
+    {
+      "id": "6",
+      "description": "Audi R8",
+      "imageUrl": "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhdWRpJTIwcjhlbnwwfHx8fDE3NjMwNzc3MjV8MA&ixlib.rb-4.1.0&q=80&w=1080",
+      "imageHint": "audi r8"
+    }
+  ]
+}

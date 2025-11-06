@@ -1,0 +1,218 @@
+
+{
+  "entities": {
+    "Car": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Car",
+      "type": "object",
+      "description": "Represents a car available for sale or in the inventory.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Car entity."
+        },
+        "make": {
+          "type": "string",
+          "description": "The make of the car (e.g., Toyota, Ford)."
+        },
+        "model": {
+          "type": "string",
+          "description": "The model of the car (e.g., Camry, F-150)."
+        },
+        "year": {
+          "type": "number",
+          "description": "The manufacturing year of the car."
+        },
+        "price": {
+          "type": "number",
+          "description": "The price of the car."
+        },
+        "mileage": {
+          "type": "number",
+          "description": "The mileage of the car."
+        },
+        "color": {
+          "type": "string",
+          "description": "The color of the car."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the car image.",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the car."
+        },
+        "engine": {
+            "type": "string",
+            "description": "The engine configuration of the car (e.g., V8, V12, Electric)."
+        },
+        "horsepower": {
+            "type": "number",
+            "description": "The horsepower of the car's engine."
+        },
+        "transmission": {
+            "type": "string",
+            "description": "The type of transmission (e.g., Automatic, Manual)."
+        }
+      },
+      "required": [
+        "id",
+        "make",
+        "model",
+        "year",
+        "price",
+        "mileage",
+        "color",
+        "imageUrl",
+        "description",
+        "engine",
+        "horsepower",
+        "transmission"
+      ]
+    },
+    "CartItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CartItem",
+      "type": "object",
+      "description": "Represents an item in the user's shopping cart.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the CartItem entity."
+        },
+        "carId": {
+          "type": "string",
+          "description": "Reference to Car. (Relationship: Car 1:N CartItem)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of the car in the cart."
+        }
+      },
+      "required": [
+        "id",
+        "carId",
+        "quantity"
+      ]
+    },
+    "Order": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Order",
+      "type": "object",
+      "description": "Represents a customer's order.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Order entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who placed the order."
+        },
+        "userEmail": {
+          "type": "string",
+          "description": "The email of the user who placed the order.",
+          "format": "email"
+        },
+        "items": {
+          "type": "array",
+          "description": "An array of car objects that were ordered.",
+          "items": {
+            "$ref": "#/backend/entities/Car"
+          }
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total amount of the order."
+        },
+        "orderDate": {
+          "type": "object",
+          "description": "The timestamp when the order was placed."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the order.",
+          "enum": ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"]
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "The payment method selected by the user.",
+          "enum": ["Cash on Delivery", "Credit/Debit Card", "GCash", "Bank Transfer"]
+        },
+        "paymentProofUrl": {
+            "type": "string",
+            "description": "URL to the uploaded proof of payment, if applicable.",
+            "format": "uri"
+        }
+      },
+      "required": ["id", "userId", "userEmail", "items", "totalAmount", "orderDate", "status", "paymentMethod"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "cars/{carId}",
+        "definition": {
+          "entityName": "Car",
+          "schema": {
+            "$ref": "#/backend/entities/Car"
+          },
+          "description": "Stores car details. All users can read car data.",
+          "params": [
+            {
+              "name": "carId",
+              "description": "The unique ID of the car."
+            }
+          ]
+        }
+      },
+      {
+        "path": "users/{userId}/cartItems/{cartItemId}",
+        "definition": {
+          "entityName": "CartItem",
+          "schema": {
+            "$ref": "#/backend/entities/CartItem"
+          },
+          "description": "Stores items in the user's shopping cart. Path-based ownership ensures only the user can access their cart.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            },
+            {
+              "name": "cartItemId",
+              "description": "The unique ID of the cart item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores all customer orders. Admins can read all orders, while users can only read their own.",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique ID of the order."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to support the CarStoreGo application's features, focusing on cart functionality and car listings.  The structure is designed around path-based ownership for `cartItems` and a simple `cars` collection. Key considerations:\n\n1.  **Authorization Independence**:  The `cartItems` subcollection is located under `/users/{userId}/cartItems/{cartItemId}`.  Security rules can rely solely on `request.auth.uid` to determine if a user has access to their own cart, eliminating the need for `get()` calls. There are no authorization dependencies between the `users` and `cartItems` collections.\n\n2.  **Structural Segregation**:  The `cars` collection holds all car documents, assuming all users can view all cars. A top-level `orders` collection is added for admins to easily query all orders.  If there were a need to restrict car visibility (e.g., drafts only visible to admins), a separate collection (e.g., `/admin/cars_drafts`) would be used.\n\n3.  **Access Modeling**:  Path-based ownership is used for user carts (`/users/{userId}/cartItems/{cartItemId}`). For the `orders` collection, a `userId` field within each order document allows for rules to grant users access to their own orders, while admins can have broader access. No membership maps or global roles are required given the prompt requirements.  The ownership model is very simple and effective.\n\n4.  **QAPs (Rules are not Filters)**: List operations in `cars` collection are secure because no special auth is required to view the cars. Access to `cartItems` is based on user id so listing is secure too. Listing orders is secure for admins, and user-specific queries are required for regular users.\n\n5.  **Invariants**: The `cars` collection facilitates maintaining car data integrity.  The path-based ownership for carts ensures that users can only modify their own carts. The `orders` collection with a `userId` field allows for maintaining data integrity while supporting different access levels."
+  }
+}
+
+    
