@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, Suspense } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useFirestore, useCollection, useUser } from '@/firebase';
@@ -30,6 +30,10 @@ type CartItem = {
     quantity: number;
 };
 
+function CheckoutForm() {
+    const firestore = useFirestore();
+    const { user } = useUser();
+
 const paymentMethods = [
     { id: 'cod', title: 'Cash on Delivery', icon: CircleDollarSign },
     { id: 'card', title: 'Credit/Debit Card', icon: CreditCard },
@@ -37,9 +41,6 @@ const paymentMethods = [
     { id: 'bank', title: 'Bank Transfer', icon: Landmark },
 ]
 
-export default function CheckoutPage() {
-    const firestore = useFirestore();
-    const { user } = useUser();
     const router = useRouter();
     const { toast } = useToast();
 
@@ -142,7 +143,7 @@ export default function CheckoutPage() {
     const isPlaceOrderDisabled = isProcessing || (needsProof && !paymentProof);
 
     return (
-        <div className="container py-12">
+        
             <ClientOnly>
                 <h1 className="text-3xl font-bold mb-8">Checkout</h1>
                 <div className="grid md:grid-cols-3 gap-12 items-start">
@@ -287,6 +288,16 @@ export default function CheckoutPage() {
                     </div>
                 </div>
             </ClientOnly>
-        </div>
+        
     )
+}
+
+export default function CheckoutPage() {
+    return (
+        <div className="container py-12">
+            <Suspense fallback={<div>Loading checkout...</div>}>
+                <CheckoutForm />
+            </Suspense>
+        </div>
+    );
 }
